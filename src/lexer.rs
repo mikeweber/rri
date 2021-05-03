@@ -88,15 +88,21 @@ impl Iterator for Lexer {
 
         let tok = match self.ch {
             '=' => Token::new(TokenType::ASSIGN,    self.ch.to_string()),
+            '+' => Token::new(TokenType::PLUS,      self.ch.to_string()),
+            '-' => Token::new(TokenType::MINUS,     self.ch.to_string()),
+            '!' => Token::new(TokenType::BANG,      self.ch.to_string()),
+            '/' => Token::new(TokenType::SLASH,     self.ch.to_string()),
+            '*' => Token::new(TokenType::ASTERISK,  self.ch.to_string()),
+            '<' => Token::new(TokenType::LT,        self.ch.to_string()),
+            '>' => Token::new(TokenType::GT,        self.ch.to_string()),
             ';' => Token::new(TokenType::SEMICOLON, self.ch.to_string()),
+            ',' => Token::new(TokenType::COMMA,     self.ch.to_string()),
             '(' => Token::new(TokenType::LPAREN,    self.ch.to_string()),
             ')' => Token::new(TokenType::RPAREN,    self.ch.to_string()),
-            ',' => Token::new(TokenType::COMMA,     self.ch.to_string()),
-            '+' => Token::new(TokenType::PLUS,      self.ch.to_string()),
             '{' => Token::new(TokenType::LBRACE,    self.ch.to_string()),
             '}' => Token::new(TokenType::RBRACE,    self.ch.to_string()),
-            '\n' => Token::new(TokenType::NEWLINE, self.ch.to_string()),
-            '\r' => Token::new(TokenType::NEWLINE, self.ch.to_string()),
+            '\n' => Token::new(TokenType::NEWLINE,  self.ch.to_string()),
+            '\r' => Token::new(TokenType::NEWLINE,  self.ch.to_string()),
             _ => {
                 if self.is_letter(self.ch) {
                     let literal = self.read_identifier();
@@ -186,6 +192,78 @@ result = add five, ten";
             Token::new(TokenType::IDENT,      "five".to_string()),
             Token::new(TokenType::COMMA,      ",".to_string()),
             Token::new(TokenType::IDENT,      "ten".to_string()),
+        ];
+
+        let mut lexer = Lexer::new(input);
+        for t in expected_tokens {
+            let next_token = lexer.next();
+
+            match next_token {
+                Some(tok) => {
+                    println!("Compare {} and {}", tok.literal, t.literal);
+                    assert_eq!(tok.token_type, t.token_type);
+                    assert_eq!(tok.literal, t.literal);
+                },
+                None => {}
+            }
+        }
+    }
+
+    #[test]
+    fn it_can_parse_more_characters() {
+        let input = "five = 5
+ten = 10
+def add(x, y)
+  x + y
+end
+result = add(five, ten); !-/*5;
+5 < 10 > 5;";
+
+        let expected_tokens = vec![
+            Token::new(TokenType::IDENT,      "five".to_string()),
+            Token::new(TokenType::ASSIGN,     "=".to_string()),
+            Token::new(TokenType::INT,        "5".to_string()),
+            Token::new(TokenType::NEWLINE,    "\n".to_string()),
+            Token::new(TokenType::IDENT,      "ten".to_string()),
+            Token::new(TokenType::ASSIGN,     "=".to_string()),
+            Token::new(TokenType::INT,        "10".to_string()),
+            Token::new(TokenType::NEWLINE,    "\n".to_string()),
+            Token::new(TokenType::DEF,        "def".to_string()),
+            Token::new(TokenType::IDENT,      "add".to_string()),
+            Token::new(TokenType::LPAREN,     "(".to_string()),
+            Token::new(TokenType::IDENT,      "x".to_string()),
+            Token::new(TokenType::COMMA,      ",".to_string()),
+            Token::new(TokenType::IDENT,      "y".to_string()),
+            Token::new(TokenType::RPAREN,     ")".to_string()),
+            Token::new(TokenType::NEWLINE,    "\n".to_string()),
+            Token::new(TokenType::IDENT,      "x".to_string()),
+            Token::new(TokenType::PLUS,       "+".to_string()),
+            Token::new(TokenType::IDENT,      "y".to_string()),
+            Token::new(TokenType::NEWLINE,    "\n".to_string()),
+            Token::new(TokenType::END,        "end".to_string()),
+            Token::new(TokenType::NEWLINE,    "\n".to_string()),
+            Token::new(TokenType::IDENT,      "result".to_string()),
+            Token::new(TokenType::ASSIGN,     "=".to_string()),
+            Token::new(TokenType::IDENT,      "add".to_string()),
+            Token::new(TokenType::LPAREN,     "(".to_string()),
+            Token::new(TokenType::IDENT,      "five".to_string()),
+            Token::new(TokenType::COMMA,      ",".to_string()),
+            Token::new(TokenType::IDENT,      "ten".to_string()),
+            Token::new(TokenType::RPAREN,     ")".to_string()),
+            Token::new(TokenType::SEMICOLON,  ";".to_string()),
+            Token::new(TokenType::BANG,       "!".to_string()),
+            Token::new(TokenType::MINUS,      "-".to_string()),
+            Token::new(TokenType::SLASH,      "/".to_string()),
+            Token::new(TokenType::ASTERISK,   "*".to_string()),
+            Token::new(TokenType::INT,        "5".to_string()),
+            Token::new(TokenType::SEMICOLON,  ";".to_string()),
+            Token::new(TokenType::NEWLINE,    "\n".to_string()),
+            Token::new(TokenType::INT,        "5".to_string()),
+            Token::new(TokenType::LT,         "<".to_string()),
+            Token::new(TokenType::INT,        "10".to_string()),
+            Token::new(TokenType::GT,         ">".to_string()),
+            Token::new(TokenType::INT,        "5".to_string()),
+            Token::new(TokenType::SEMICOLON,  ";".to_string()),
         ];
 
         let mut lexer = Lexer::new(input);
