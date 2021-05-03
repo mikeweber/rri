@@ -2,15 +2,15 @@ pub mod token;
 
 use token::{ TokenType, Token, KEYWORDS };
 
-struct Lexer {
-    body:     &'static str,
+pub struct Lexer {
+    body:     String,
     pos:      usize,
     read_pos: usize,
     ch:       char
 }
 
 impl Lexer {
-    pub fn new(body: &'static str) -> Self {
+    pub fn new(body: String) -> Self {
         let mut l = Self {
             body: body,
             pos: 0,
