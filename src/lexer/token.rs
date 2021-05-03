@@ -1,3 +1,5 @@
+use phf::phf_map;
+
 pub struct Token {
     pub token_type: TokenType,
     pub literal: String,
@@ -14,6 +16,8 @@ impl Token {
 
 #[derive(Debug)]
 #[derive(std::cmp::PartialEq)]
+#[derive(Copy)]
+#[derive(Clone)]
 pub enum TokenType {
     ILLEGAL,
     EOF,
@@ -35,8 +39,16 @@ pub enum TokenType {
     RPAREN,
     LBRACE,
     RBRACE,
+    NEWLINE,
 
     // Keywords
     DEF,
     END,
+    DO,
 }
+
+pub static KEYWORDS: phf::Map<&'static str, TokenType> = phf_map! {
+    "def" => TokenType::DEF,
+    "end" => TokenType::END,
+    "do"  => TokenType::DO,
+};
