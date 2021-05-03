@@ -31,6 +31,10 @@ impl Lexer {
         self.read_pos += 1;
     }
 
+    pub fn peek_char(&mut self) -> char {
+        return self.body.as_bytes()[self.read_pos] as char;
+    }
+
     pub fn read_identifier(&mut self) -> String {
         let pos = self.pos;
         while self.is_letter(self.ch) {
@@ -87,10 +91,29 @@ impl Iterator for Lexer {
         self.skip_whitespace();
 
         let tok = match self.ch {
-            '=' => Token::new(TokenType::ASSIGN,    self.ch.to_string()),
+            '=' => {
+                println!("Taking a peek: {:?}", self.peek_char());
+                if self.peek_char() == '=' {
+                    let ch = self.ch;
+                    self.read_char();
+                    Token::new(TokenType::EQ,        "==".to_string())
+                } else {
+                    Token::new(TokenType::ASSIGN,    self.ch.to_string())
+                }
+            },
             '+' => Token::new(TokenType::PLUS,      self.ch.to_string()),
             '-' => Token::new(TokenType::MINUS,     self.ch.to_string()),
-            '!' => Token::new(TokenType::BANG,      self.ch.to_string()),
+            '!' => {
+                println!("Taking a peek: {}", self.peek_char());
+                if self.peek_char() == '=' {
+                    let mut ch = String::from(self.ch);
+                    self.read_char();
+                    ch.push(self.ch);
+                    Token::new(TokenType::NOTEQ,   ch)
+                } else {
+                    Token::new(TokenType::BANG,      self.ch.to_string())
+                }
+            }
             '/' => Token::new(TokenType::SLASH,     self.ch.to_string()),
             '*' => Token::new(TokenType::ASTERISK,  self.ch.to_string()),
             '<' => Token::new(TokenType::LT,        self.ch.to_string()),
@@ -217,7 +240,16 @@ def add(x, y)
   x + y
 end
 result = add(five, ten); !-/*5;
-5 < 10 > 5;";
+5 < 10 > 5;
+
+if (5 < 10) {
+  return true
+} else {
+  return false
+}
+
+10 == 10
+10 != 9";
 
         let expected_tokens = vec![
             Token::new(TokenType::IDENT,      "five".to_string()),
@@ -264,6 +296,36 @@ result = add(five, ten); !-/*5;
             Token::new(TokenType::GT,         ">".to_string()),
             Token::new(TokenType::INT,        "5".to_string()),
             Token::new(TokenType::SEMICOLON,  ";".to_string()),
+            Token::new(TokenType::NEWLINE,    "\n".to_string()),
+            Token::new(TokenType::NEWLINE,    "\n".to_string()),
+            Token::new(TokenType::IF,         "if".to_string()),
+            Token::new(TokenType::LPAREN,     "(".to_string()),
+            Token::new(TokenType::INT,        "5".to_string()),
+            Token::new(TokenType::LT,         "<".to_string()),
+            Token::new(TokenType::INT,        "10".to_string()),
+            Token::new(TokenType::RPAREN,     ")".to_string()),
+            Token::new(TokenType::LBRACE,     "{".to_string()),
+            Token::new(TokenType::NEWLINE,    "\n".to_string()),
+            Token::new(TokenType::RETURN,     "return".to_string()),
+            Token::new(TokenType::TRUE,       "true".to_string()),
+            Token::new(TokenType::NEWLINE,    "\n".to_string()),
+            Token::new(TokenType::RBRACE,     "}".to_string()),
+            Token::new(TokenType::ELSE,       "else".to_string()),
+            Token::new(TokenType::LBRACE,     "{".to_string()),
+            Token::new(TokenType::NEWLINE,    "\n".to_string()),
+            Token::new(TokenType::RETURN,     "return".to_string()),
+            Token::new(TokenType::FALSE,      "false".to_string()),
+            Token::new(TokenType::NEWLINE,    "\n".to_string()),
+            Token::new(TokenType::RBRACE,     "}".to_string()),
+            Token::new(TokenType::NEWLINE,    "\n".to_string()),
+            Token::new(TokenType::NEWLINE,    "\n".to_string()),
+            Token::new(TokenType::INT,        "10".to_string()),
+            Token::new(TokenType::EQ,         "==".to_string()),
+            Token::new(TokenType::INT,        "10".to_string()),
+            Token::new(TokenType::NEWLINE,    "\n".to_string()),
+            Token::new(TokenType::INT,        "10".to_string()),
+            Token::new(TokenType::NOTEQ,      "!=".to_string()),
+            Token::new(TokenType::INT,        "9".to_string()),
         ];
 
         let mut lexer = Lexer::new(input);

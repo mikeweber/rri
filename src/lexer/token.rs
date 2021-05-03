@@ -51,10 +51,22 @@ pub enum TokenType {
     DEF,
     END,
     DO,
+    TRUE,
+    FALSE,
+    IF,
+    ELSE,
+    RETURN,
+    EQ,
+    NOTEQ,
 }
 
 pub static KEYWORDS: phf::Map<&'static str, TokenType> = phf_map! {
-    "def" => TokenType::DEF,
-    "end" => TokenType::END,
-    "do"  => TokenType::DO,
+    "def"    => TokenType::DEF,
+    "end"    => TokenType::END,
+    "do"     => TokenType::DO,
+    "true"   => TokenType::TRUE,
+    "false"  => TokenType::FALSE,
+    "if"     => TokenType::IF,
+    "else"   => TokenType::ELSE,
+    "return" => TokenType::RETURN,
 };
