@@ -61,12 +61,8 @@ impl Lexer {
     }
 
     pub fn lookup_ident(&mut self, ident: String) -> TokenType {
-        println!("Looking up identity for {}", &ident[..]);
         match KEYWORDS.get(&ident[..]) {
-            Some(tt) => {
-                println!("Found a keyword: {}", ident);
-                *tt
-            },
+            Some(tt) => *tt,
             None => TokenType::IDENT
         }
     }
@@ -92,7 +88,6 @@ impl Iterator for Lexer {
 
         let tok = match self.ch {
             '=' => {
-                println!("Taking a peek: {:?}", self.peek_char());
                 if self.peek_char() == '=' {
                     let ch = self.ch;
                     self.read_char();
@@ -104,7 +99,6 @@ impl Iterator for Lexer {
             '+' => Token::new(TokenType::PLUS,      self.ch.to_string()),
             '-' => Token::new(TokenType::MINUS,     self.ch.to_string()),
             '!' => {
-                println!("Taking a peek: {}", self.peek_char());
                 if self.peek_char() == '=' {
                     let mut ch = String::from(self.ch);
                     self.read_char();
@@ -149,7 +143,6 @@ mod tests {
 
     #[test]
     fn it_can_parse_a_single_line() {
-        println!("does this test run?");
         let input = "=+(){},;";
         let expected_tokens = vec![
             Token::new(TokenType::ASSIGN,     "=".to_string()),
