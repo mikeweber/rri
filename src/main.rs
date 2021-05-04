@@ -1,3 +1,6 @@
+use std::io;
+use std::io::Write;
+
 mod lexer;
 
 use crate::lexer::Lexer;
@@ -8,7 +11,8 @@ fn main() {
     println!("Welcome to Rust's Ruby Interpreter");
     let mut running = true;
     while running {
-        println!("{}", PROMPT);
+        print!("{}", PROMPT);
+        io::stdout().flush();
         let mut line = String::new();
         std::io::stdin().read_line(&mut line).unwrap();
         let mut lex = Lexer::new(line);
