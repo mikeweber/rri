@@ -1,5 +1,6 @@
 use phf::phf_map;
 
+#[derive(Clone, Debug)]
 pub struct Token {
     pub token_type: TokenType,
     pub literal: String,
@@ -14,10 +15,8 @@ impl Token {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 #[derive(std::cmp::PartialEq)]
-#[derive(Copy)]
-#[derive(Clone)]
 pub enum TokenType {
     ILLEGAL,
     EOF,

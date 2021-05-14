@@ -32,7 +32,10 @@ impl Lexer {
     }
 
     pub fn peek_char(&mut self) -> char {
-        return self.body.as_bytes()[self.read_pos] as char;
+        let bytes = self.body.as_bytes();
+        if self.read_pos >= bytes.len() { return '\u{0}'; }
+
+        bytes[self.read_pos] as char
     }
 
     pub fn read_identifier(&mut self) -> String {
@@ -89,7 +92,6 @@ impl Iterator for Lexer {
         let tok = match self.ch {
             '=' => {
                 if self.peek_char() == '=' {
-                    let ch = self.ch;
                     self.read_char();
                     Token::new(TokenType::EQ,        "==".to_string())
                 } else {
@@ -155,7 +157,7 @@ mod tests {
             Token::new(TokenType::SEMICOLON,  ";".to_string()),
             Token::new(TokenType::EOF,        "\u{0}".to_string()),
         ];
-        let mut lexer = Lexer::new(input);
+        let mut lexer = Lexer::new(input.to_string());
         for t in expected_tokens {
             let next_token = lexer.next();
 
@@ -210,7 +212,7 @@ result = add five, ten";
             Token::new(TokenType::IDENT,      "ten".to_string()),
         ];
 
-        let mut lexer = Lexer::new(input);
+        let mut lexer = Lexer::new(input.to_string());
         for t in expected_tokens {
             let next_token = lexer.next();
 
@@ -321,7 +323,7 @@ if (5 < 10) {
             Token::new(TokenType::INT,        "9".to_string()),
         ];
 
-        let mut lexer = Lexer::new(input);
+        let mut lexer = Lexer::new(input.to_string());
         for t in expected_tokens {
             let next_token = lexer.next();
 

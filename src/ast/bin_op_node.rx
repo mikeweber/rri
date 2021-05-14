@@ -1,0 +1,14 @@
+use ast::Node;
+use lexer::token::Token;
+
+pub struct BinOpNode {
+    pub left_node: &Node,
+    pub right_node: &Node,
+    pub op_tok: &Token,
+}
+
+impl Node for BinOpNode {
+    fn token_literal(&self) -> String {
+        self.op_tok.literal
+    }
+}

@@ -1,9 +1,12 @@
 use std::io;
 use std::io::Write;
 
+mod ast;
 mod lexer;
+mod parser;
 
 use crate::lexer::Lexer;
+use crate::parser::Parser;
 
 const PROMPT: &str = ">> ";
 
@@ -15,7 +18,7 @@ fn main() {
         io::stdout().flush();
         let mut line = String::new();
         std::io::stdin().read_line(&mut line).unwrap();
-        let mut lex = Lexer::new(line);
+        let lex = Lexer::new(line);
         for tok in lex {
             println!("{:?}:{}", tok.token_type, tok.literal);
             if tok.literal == "exit".to_string() { running = false };
