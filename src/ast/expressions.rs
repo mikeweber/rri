@@ -1,6 +1,18 @@
 use crate::lexer::token::Token;
-use crate::ast::node::Identifier;
+use super::node::Node;
 
-pub enum Expression {
-    Assign(&Token, Identifier, &Expression)
+#[derive(Clone, Debug)]
+pub enum Expression<'a> {
+    Assign(Token, Node<'a>, Box<Expression<'a>>),
+    Value(Token, i32),
 }
+
+impl<'a> Expression<'a> {
+    pub fn token_literal(&self) -> String {
+        match self {
+            Expression::Assign(token, _, _) => token.literal.clone(),
+            Expression::Value(token, _) => token.literal.clone(),
+        }
+    }
+}
+

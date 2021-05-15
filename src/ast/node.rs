@@ -1,9 +1,10 @@
 use crate::lexer::token::Token;
 
+#[derive(Clone, Debug)]
 pub enum Node<'a> {
-    Identifier(&'a Token, String),
-    NumberNode(&'a Token),
-    BinOpNode(&'a Node<'a>, &'a Node<'a>, &'a Token)
+    Identifier(Token, String),
+    NumberNode(Token),
+    BinOpNode(&'a Node<'a>, &'a Node<'a>, Token)
 }
 
 pub fn token_literal(node: &Node) -> String {
@@ -13,3 +14,4 @@ pub fn token_literal(node: &Node) -> String {
         Node::BinOpNode(_, _, token) => token.literal.clone(),
     }
 }
+

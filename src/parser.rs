@@ -1,5 +1,8 @@
 use crate::lexer::Lexer;
 use crate::lexer::token::{ Token, TokenType };
+use crate::ast::node::Node;
+use crate::ast::expressions::Expression;
+use crate::program::Program;
 
 pub struct Parser<'a> {
     lexer: &'a mut Lexer,
@@ -27,6 +30,86 @@ impl<'a> Parser<'a> {
 
     pub fn peek(&self) -> Option<Token> {
         self.peek_token.clone()
+    }
+
+    pub fn parse_program(&mut self) -> Program {
+        let mut program = Program::new();
+        while !self.is_eof() {
+            let expr = self.parse_expression();
+            match expr {
+                Some(expression) => program.push(expression),
+                None => ()
+            }
+            self.next();
+        }
+
+        return program
+    }
+
+    fn parse_expression(&mut self) -> Option<Expression<'a>> {
+        match self.current().token_type {
+            TokenType::IDENT  => self.parse_ident_expression(self.current().clone()),
+            TokenType::INT    => self.parse_integer(self.current().clone()),
+            _ => None
+        }
+    }
+
+    fn parse_ident_expression(&mut self, token: Token) -> Option<Expression<'a>> {
+        match self.peek() {
+            Some(peek_token) => {
+                match peek_token.token_type {
+                    TokenType::ASSIGN => self.parse_assign_expression(),
+                    _ => None
+                }
+            },
+            None => None
+        }
+
+    }
+
+    fn parse_assign_expression(&mut self) -> Option<Expression<'a>> {
+        if !self.cur_token_is(TokenType::IDENT) { return None; }
+
+        let name = Node::Identifier(self.current().clone(), self.current().literal.clone());
+
+        if !self.expect_peek(TokenType::ASSIGN) { return None; }
+
+        self.next();
+        match self.parse_expression() {
+            Some(right_expr) => Some(Expression::Assign(self.current().clone(), name, Box::new(right_expr))),
+            None => None
+        }
+    }
+
+    fn parse_integer(&mut self, token: Token) -> Option<Expression<'a>> {
+        while !self.is_end_of_expression() { self.next(); }
+        Some(Expression::Value(token, 0))
+    }
+
+    fn is_end_of_expression(&mut self) -> bool {
+        self.cur_token_is(TokenType::SEMICOLON) || self.cur_token_is(TokenType::NEWLINE) || self.is_eof()
+    }
+
+    fn cur_token_is(&mut self, expected_type: TokenType) -> bool {
+        self.current().token_type == expected_type
+    }
+
+    fn expect_peek(&mut self, expected_type: TokenType) -> bool {
+        if !self.peek_token_is(expected_type) { return false; }
+
+        self.next();
+        return true;
+    }
+
+    fn peek_token_is(&mut self, expected_type: TokenType) -> bool {
+        match self.peek() {
+            Some(token) => token.token_type == expected_type,
+            None => false
+        }
+    }
+
+    fn is_eof(&mut self) -> bool {
+        self.peek().is_none() || self.peek().unwrap().token_type == TokenType::EOF
     }
 }
 
