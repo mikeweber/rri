@@ -27,11 +27,37 @@ mod test {
             foobar = 838383;";
         let mut lexer = Lexer::new(input.to_string());
         let mut parser = Parser::new(&mut lexer);
-        let program = parser.parse_program();
+        let (program, errors) = parser.parse_program();
+        check_parser_errors(errors);
+
         assert_eq!(program.expressions.len(), 3);
         test_assign_expression(program.expressions[0].clone(), "x".to_string());
         test_assign_expression(program.expressions[1].clone(), "y".to_string());
         test_assign_expression(program.expressions[2].clone(), "foobar".to_string());
+    }
+
+    #[test]
+    fn should_parse_return_expressions() {
+        let input = "
+            return 5;
+            return 10
+            return 993322
+        ";
+
+        let mut lexer = Lexer::new(input.to_string());
+        let mut parser = Parser::new(&mut lexer);
+        let (program, errors) = parser.parse_program();
+        check_parser_errors(errors);
+
+        assert_eq!(program.expressions.len(), 3);
+        for expr in program.expressions.iter() {
+            println!("Checking expression {:?}", expr);
+            match expr {
+                Expression::Return(token, _) => assert_eq!(token.literal, "return"),
+                Expression::Assign(_, _, _) => panic!("expected Return, got Assign"),
+                Expression::Value(_, _) => panic!("expected Return, got Value"),
+            }
+        }
     }
 
     fn test_assign_expression(e: Expression, expected_name: String) {
@@ -42,7 +68,18 @@ mod test {
                     _ => panic!("Right expression type, wrong Node type")
                 }
             },
-            Expression::Value(token, _) => panic!("Wrong expression type, got {:?}", token.token_type)
+            Expression::Value(_, _) => panic!("expected Assign, got Value"),
+            Expression::Return(_, _) => panic!("expected Assign, got Return"),
         }
+    }
+
+    fn check_parser_errors(errors: Vec<String>) {
+        if errors.len() == 0 { return; }
+
+        println!("parser has {} errors", errors.len());
+        for msg in errors.iter() {
+            println!("- {}", msg);
+        }
+        panic!("end of parser errors");
     }
 }

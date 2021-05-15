@@ -5,6 +5,7 @@ use super::node::Node;
 pub enum Expression<'a> {
     Assign(Token, Node<'a>, Box<Expression<'a>>),
     Value(Token, i32),
+    Return(Token, Box<Expression<'a>>),
 }
 
 impl<'a> Expression<'a> {
@@ -12,6 +13,7 @@ impl<'a> Expression<'a> {
         match self {
             Expression::Assign(token, _, _) => token.literal.clone(),
             Expression::Value(token, _) => token.literal.clone(),
+            Expression::Return(token, _) => token.literal.clone(),
         }
     }
 }

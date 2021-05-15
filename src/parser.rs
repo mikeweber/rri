@@ -8,6 +8,7 @@ pub struct Parser<'a> {
     lexer: &'a mut Lexer,
     current_token: Token,
     peek_token: Option<Token>,
+    errors: Vec<String>,
 }
 
 impl<'a> Parser<'a> {
@@ -20,8 +21,22 @@ impl<'a> Parser<'a> {
         Self {
             lexer: lexer,
             current_token: current,
-            peek_token: peek
+            peek_token: peek,
+            errors: vec!(),
         }
+    }
+
+    pub fn errors(&self) -> Vec<String> {
+        self.errors.clone()
+    }
+
+    fn peek_error(&mut self, expected_type: TokenType) {
+        let msg = match self.peek() {
+            Some(token) => format!("expected next token to be {:?}, got {:?} instead", expected_type, token.token_type),
+            None => format!("expected next tokent to be {:?}, got EOF instead", expected_type)
+        };
+
+        self.errors.push(msg.clone());
     }
 
     pub fn current(&self) -> Token {
@@ -32,7 +47,7 @@ impl<'a> Parser<'a> {
         self.peek_token.clone()
     }
 
-    pub fn parse_program(&mut self) -> Program {
+    pub fn parse_program(&mut self) -> (Program, Vec<String>) {
         let mut program = Program::new();
         while !self.is_eof() {
             let expr = self.parse_expression();
@@ -43,18 +58,20 @@ impl<'a> Parser<'a> {
             self.next();
         }
 
-        return program
+        println!("finished parsing program. found {} errors.", self.errors().len());
+        return (program, self.errors());
     }
 
     fn parse_expression(&mut self) -> Option<Expression<'a>> {
         match self.current().token_type {
-            TokenType::IDENT  => self.parse_ident_expression(self.current().clone()),
-            TokenType::INT    => self.parse_integer(self.current().clone()),
+            TokenType::IDENT  => self.parse_ident_expression(),
+            TokenType::INT    => self.parse_integer(),
+            TokenType::RETURN => self.parse_return_expression(),
             _ => None
         }
     }
 
-    fn parse_ident_expression(&mut self, token: Token) -> Option<Expression<'a>> {
+    fn parse_ident_expression(&mut self) -> Option<Expression<'a>> {
         match self.peek() {
             Some(peek_token) => {
                 match peek_token.token_type {
@@ -81,9 +98,21 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn parse_integer(&mut self, token: Token) -> Option<Expression<'a>> {
+    fn parse_integer(&mut self) -> Option<Expression<'a>> {
+        let current = self.current().clone();
         while !self.is_end_of_expression() { self.next(); }
-        Some(Expression::Value(token, 0))
+
+        Some(Expression::Value(current, 0))
+    }
+
+    fn parse_return_expression(&mut self) -> Option<Expression<'a>> {
+        let return_token = self.current().clone();
+        self.next();
+
+        match self.parse_expression() {
+            Some(right_expr) => Some(Expression::Return(return_token, Box::new(right_expr))),
+            None => None
+        }
     }
 
     fn is_end_of_expression(&mut self) -> bool {
@@ -95,15 +124,20 @@ impl<'a> Parser<'a> {
     }
 
     fn expect_peek(&mut self, expected_type: TokenType) -> bool {
-        if !self.peek_token_is(expected_type) { return false; }
-
-        self.next();
-        return true;
+        if self.peek_token_is(expected_type) {
+            self.next();
+            return true;
+        } else {
+            self.peek_error(expected_type);
+            return false;
+        }
     }
 
     fn peek_token_is(&mut self, expected_type: TokenType) -> bool {
         match self.peek() {
-            Some(token) => token.token_type == expected_type,
+            Some(token) => {
+                token.token_type == expected_type
+            },
             None => false
         }
     }
