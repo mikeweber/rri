@@ -14,4 +14,3 @@ pub fn token_literal(node: &Node) -> String {
         Node::BinOpNode(_, _, token) => token.literal.clone(),
     }
 }
-

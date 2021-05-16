@@ -16,5 +16,18 @@ impl<'a> Expression<'a> {
             Expression::Return(token, _) => token.literal.clone(),
         }
     }
+
+    pub fn to_s(&self) -> String {
+        match self {
+            Expression::Assign(token, ident, expr) => {
+                match ident {
+                    Node::Identifier(_, name) => format!("{} {} {}\n", name, token.literal, expr.to_s()),
+                    _ => String::from("[INVALID ASSIGN EXPRESSION]")
+                }
+            },
+            Expression::Value(token, value) => format!("{}", token.literal),
+            Expression::Return(token, expr) => format!("{} {}\n", token.literal, expr.to_s()),
+        }
+    }
 }
 

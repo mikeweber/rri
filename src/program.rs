@@ -1,5 +1,6 @@
 use crate::ast::node::Node;
 use crate::ast::expressions::Expression;
+use crate::lexer::token::{ Token, TokenType };
 
 pub struct Program<'a> {
     expressions: Vec<Expression<'a>>
@@ -12,6 +13,16 @@ impl<'a> Program<'a> {
 
     pub fn push(&mut self, expression: Expression<'a>) {
         self.expressions.push(expression)
+    }
+
+    pub fn to_s(&self) -> String {
+        let mut string = String::from("");
+
+        for expr in self.expressions.iter() {
+            string = string + &expr.to_s();
+        }
+
+        return string;
     }
 }
 
@@ -58,6 +69,25 @@ mod test {
                 Expression::Value(_, _) => panic!("expected Return, got Value"),
             }
         }
+    }
+
+    #[test]
+    fn should_print_a_program() {
+        let mut program = Program::new();
+        let assign_expression = Expression::Assign(
+            Token::new(TokenType::ASSIGN, "=".to_string()),
+            Node::Identifier(
+                Token::new(TokenType::IDENT, "my_var".to_string()),
+                "my_var".to_string()
+            ),
+            Box::new(Expression::Value(
+                Token::new(TokenType::IDENT, "another_var".to_string()),
+                5
+            ))
+
+        );
+        program.push(assign_expression);
+        assert_eq!(program.to_s(), "my_var = another_var\n");
     }
 
     fn test_assign_expression(e: Expression, expected_name: String) {
