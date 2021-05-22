@@ -3,7 +3,7 @@ use crate::ast::expressions::Expression;
 use crate::lexer::token::{ Token, TokenType };
 
 pub struct Program<'a> {
-    expressions: Vec<Expression<'a>>
+    pub expressions: Vec<Expression<'a>>
 }
 
 impl<'a> Program<'a> {
@@ -12,7 +12,7 @@ impl<'a> Program<'a> {
     }
 
     pub fn push(&mut self, expression: Expression<'a>) {
-        self.expressions.push(expression)
+        self.expressions.push(expression);
     }
 
     pub fn to_s(&self) -> String {
@@ -67,6 +67,7 @@ mod test {
                 Expression::Return(token, _) => assert_eq!(token.literal, "return"),
                 Expression::Assign(_, _, _) => panic!("expected Return, got Assign"),
                 Expression::Value(_, _) => panic!("expected Return, got Value"),
+                Expression::Identifier(_, _) => panic!("expected Assign, got Identifier"),
             }
         }
     }
@@ -100,6 +101,7 @@ mod test {
             },
             Expression::Value(_, _) => panic!("expected Assign, got Value"),
             Expression::Return(_, _) => panic!("expected Assign, got Return"),
+            Expression::Identifier(_, _) => panic!("expected Assign, got Identifier"),
         }
     }
 
@@ -111,5 +113,22 @@ mod test {
             println!("- {}", msg);
         }
         panic!("end of parser errors");
+    }
+
+    #[test]
+    fn should_print_identifier_expression() {
+        let mut lexer = Lexer::new(String::from("foobar;"));
+        let mut parser = Parser::new(&mut lexer);
+        let (program, _errors) = parser.parse_program();
+        assert_eq!(program.expressions.len(), 1);
+        match &program.expressions[0] {
+            Expression::Identifier(_token, node) => {
+                match node {
+                    Node::Identifier(_token, name) => assert_eq!(name, "foobar"),
+                    _ => panic!("Wrong Node type in Identifier expression")
+                }
+            },
+            _ => panic!("Wrong expression type")
+        }
     }
 }

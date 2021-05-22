@@ -85,6 +85,10 @@ impl Iterator for Lexer {
     type Item = Token;
 
     fn next(&mut self) -> Option<Token> {
+        if self.pos == self.body.len() {
+            self.pos += 1;
+            return Some(Token::new(TokenType::EOF, "\u{0}".to_string()));
+        }
         if self.pos >= self.body.len() { return None; }
 
         self.skip_whitespace();
@@ -128,7 +132,6 @@ impl Iterator for Lexer {
                     return Some(Token::new(self.lookup_ident(literal.clone()), literal));
                 } else if self.is_digit(self.ch) {
                     return Some(Token::new(TokenType::INT, self.read_number()));
-
                 } else {
                     Token::new(TokenType::ILLEGAL, self.ch.to_string())
                 }
@@ -166,7 +169,7 @@ mod tests {
                     assert_eq!(tok.token_type, t.token_type);
                     assert_eq!(tok.literal, t.literal);
                 },
-                None => {}
+                None => { panic!("expected {:?}, got None", t) }
             }
         }
     }
@@ -321,6 +324,7 @@ if (5 < 10) {
             Token::new(TokenType::INT,        "10".to_string()),
             Token::new(TokenType::NOTEQ,      "!=".to_string()),
             Token::new(TokenType::INT,        "9".to_string()),
+            Token::new(TokenType::EOF,        "\u{0}".to_string()),
         ];
 
         let mut lexer = Lexer::new(input.to_string());
@@ -333,7 +337,7 @@ if (5 < 10) {
                     assert_eq!(tok.token_type, t.token_type);
                     assert_eq!(tok.literal, t.literal);
                 },
-                None => {}
+                None => { panic!("expected {:?}, got None", t) }
             }
         }
     }

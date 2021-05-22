@@ -6,6 +6,7 @@ pub enum Expression<'a> {
     Assign(Token, Node<'a>, Box<Expression<'a>>),
     Value(Token, i32),
     Return(Token, Box<Expression<'a>>),
+    Identifier(Token, Node<'a>),
 }
 
 impl<'a> Expression<'a> {
@@ -14,6 +15,7 @@ impl<'a> Expression<'a> {
             Expression::Assign(token, _, _) => token.literal.clone(),
             Expression::Value(token, _) => token.literal.clone(),
             Expression::Return(token, _) => token.literal.clone(),
+            Expression::Identifier(token, _) => token.literal.clone(),
         }
     }
 
@@ -27,6 +29,7 @@ impl<'a> Expression<'a> {
             },
             Expression::Value(token, value) => format!("{}", token.literal),
             Expression::Return(token, expr) => format!("{} {}\n", token.literal, expr.to_s()),
+            Expression::Identifier(token, _) => format!("{}", token.literal)
         }
     }
 }

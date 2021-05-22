@@ -73,9 +73,11 @@ impl<'a> Parser<'a> {
 
     fn parse_ident_expression(&mut self) -> Option<Expression<'a>> {
         match self.peek() {
-            Some(peek_token) => {
+            Some(ref peek_token) => {
                 match peek_token.token_type {
                     TokenType::ASSIGN => self.parse_assign_expression(),
+                    TokenType::SEMICOLON => self.create_ident_expression(),
+                    TokenType::EOF => self.create_ident_expression(),
                     _ => None
                 }
             },
@@ -96,6 +98,14 @@ impl<'a> Parser<'a> {
             Some(right_expr) => Some(Expression::Assign(self.current().clone(), name, Box::new(right_expr))),
             None => None
         }
+    }
+
+    fn create_ident_expression(&mut self) -> Option<Expression<'a>> {
+        if !self.cur_token_is(TokenType::IDENT) { return None; }
+
+        let ident = Some(Expression::Identifier(self.current().clone(), Node::Identifier(self.current().clone(), self.current().literal.clone())));
+        self.next();
+        return ident;
     }
 
     fn parse_integer(&mut self) -> Option<Expression<'a>> {
@@ -176,11 +186,11 @@ mod test {
     }
 
     #[test]
-    fn should_initialize_with_a_single_token() {
+    fn should_initialize_with_an_ident_and_eof_token() {
         let mut lexer = Lexer::new("foo".to_string());
         let parser = Parser::new(&mut lexer);
         assert_eq!(parser.current().token_type, TokenType::IDENT);
-        assert!(parser.peek().is_none());
+        assert_eq!(parser.peek().unwrap().token_type, TokenType::EOF);
     }
 
     #[test]
@@ -211,6 +221,11 @@ mod test {
         parser.next();
 
         assert_eq!(parser.current().token_type, TokenType::SEMICOLON);
+        assert_eq!(parser.peek().unwrap().token_type, TokenType::EOF);
+
+        parser.next();
+
+        assert_eq!(parser.current().token_type, TokenType::EOF);
         assert!(parser.peek().is_none());
     }
 }
